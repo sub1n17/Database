@@ -119,24 +119,73 @@ SELECT * FROM SALE WHERE YEAR = 2024 AND MONTH = 2;
 
 
 # 실습 4-4
+SELECT * FROM sale ORDER BY price; -- 오름차순 asc생략되어있음 
+SELECT * FROM sale ORDER BY price ASC; 
+SELECT * FROM sale ORDER BY price DESC;
+SELECT * FROM Employee ORDER BY name;
+SELECT * FROM Employee ORDER BY name DESC;
+SELECT * FROM employee ORDER BY regdate ASC;
+SELECT * FROM sale WHERE price > 50000 ORDER BY price DESC;
+SELECT * FROM sale WHERE price > 50000 ORDER BY year DESC, month, price DESC;
 
 
-# 실습 4-5
-
+# 실습 4-5 (ORDER BY: 우선순위 정렬)
+SELECT * FROM sale LIMIT 3; -- 상위 3개만 조회
+SELECT * FROM sale LIMIT 0, 3; -- 0번째 인덱스부터 3개 조회
+SELECT * FROM sale LIMIT 1, 2;
+SELECT * FROM sale LIMIT 5, 3;
+SELECT * FROM sale ORDER BY price DESC LIMIT 3, 5; -- price를 내림차순으로 정렬 후 3번째 인덱스부터 5개 조회
+SELECT * FROM sale WHERE price < 50000 ORDER BY price DESC LIMIT 3;
+SELECT * FROM sale WHERE price > 50000 
+						ORDER BY year DESC, 
+                        month, price DESC LIMIT 5; -- year > month > price 순으로 정렬 후 상위 5개 조회
 
 # 실습 4-6
+SELECT SUM(price) FROM sale;
+SELECT CEILING(1.2); -- 2, 올림함수
+SELECT CEILING(1.8); -- 2
+SELECT FLOOR(1.2); -- 1, 내림함수
+SELECT FLOOR(1.8); -- 1
+SELECT ROUND(1.2); -- 1, 반올림함수
+SELECT ROUND(1.8); -- 2
+SELECT RAND(); -- 0 ~ 1 사이 실수 중 랜덤
+SELECT RAND() * 10; -- 0 ~ 10 사이 실수 중 랜덤
+SELECT CEILING(RAND() * 10); -- 1 ~ 10 사이 실수
+SELECT CEILING(RAND() * 45); -- 1 ~ 45 사이 실수
 
 
-# 실습 4-7
+SELECT COUNT(price) AS 갯수 FROM sale; -- null은 count에서 제외
+SELECT COUNT(*) AS 튜플갯수 FROM sale;
 
+SELECT LEFT('HelloWorld', 5); -- Hello / 왼쪽에서부터 5개까지 자름
+SELECT RIGHT('HelloWorld', 5); -- World / 오른쪽에서부터 5개까지 자름
+SELECT SUBSTRING('HelloWorld', 6, 5); -- World / 6번째부터 5개까지 자름
+SELECT CONCAT('Hello', 'World'); -- HelloWorld / 두 개를 이어붙임
+SELECT CONCAT(empno, name, hp) FROM employee WHERE empno='1008';
 
-# 실습 4-8
+SELECT CURDATE();
+SELECT CURTIME();
+SELECT NOW();
 
+INSERT INTO employee SET 
+						empno = '1012', 
+                        name='을지문덕', 
+                        gender = 'F', 
+                        hp = '010-1234-1012',  
+                        regdate = NOW();
+                        
 
-# 실습 4-9
+# 실습 4-7 2018년 1월 매출의 총합
+SELECT SUM(price) AS '2018년 1월 매출의 총합' FROM sale WHERE year=2018 AND month=1;
 
+# 실습 4-8 2019년 2월에 5만원 이상 매출에 대한 총합
+SELECT SUM(price) AS 총합, AVG(price) AS 평균 FROM sale WHERE price >= 50000 AND year = 2019 AND month = 2;
+
+# 실습 4-9 2020년 전체 매출 중 최저, 최고 매출
+SELECT MIN(price) AS 최저매출, MAX(price) AS 최고매출 FROM sale WHERE year = 2020;
 
 # 실습 4-10
+
 
 
 # 실습 4-11
