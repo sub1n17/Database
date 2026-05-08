@@ -185,17 +185,97 @@ SELECT SUM(price) AS 총합, AVG(price) AS 평균 FROM sale WHERE price >= 50000
 SELECT MIN(price) AS 최저매출, MAX(price) AS 최고매출 FROM sale WHERE year = 2020;
 
 # 실습 4-10
-
-
-
+SELECT empno FROM sale GROUP BY empno; -- GROUP BY절에 사용한 컬럼을 SELECT 조회 (SELECT * ❌)
+SELECT empno, year FROM sale GROUP BY empno, year; -- empno, year이 같은 조합은 하나로 묶음
+SELECT * FROM sale;
+SELECT empno, COUNT(*) AS 건수 FROM sale GROUP BY empno; -- ******
+SELECT empno, year, SUM(price) AS 합계 FROM sale 
+											WHERE price >= 50000 
+											GROUP BY empno, year ORDER BY 합계 DESC LIMIT 3;
+                                            
+										
 # 실습 4-11
-
+SELECT empno, year, SUM(price) AS 합계 
+FROM sale 
+WHERE price >= 100000 
+GROUP BY empno, year 
+HAVING 합계 >= 20000 -- GROUP BY 결과의 조건
+ORDER BY 합계 DESC;
+-- 순서 : WHERE > GROUP BY > HAVING > ORDER BY
 
 # 실습 4-12
+CREATE TABLE sale2 LIKE sale; -- 데이터복사 없이 테이블만 복사
+INSERT INTO sale2 SELECT * FROM sale; -- 복사한 테이블에 데이터 복사
+SELECT * FROM sale2;
+UPDATE sale2 SET year = year + 4;
+SELECT * FROM sale UNION SELECT * FROM sale2;
+SELECT * FROM sale WHERE price >= 100000 UNION SELECT * FROM sales2 WHERE price >= 100000;
+SELECT empno, year, sale FROM sale UNION SELECT empno, year, sale FROM sale2;
+SELECT empno, year, SUM(price) AS 합계 
+FROM sale GROUP BY empno, year UNION
+SELECT empno, year, SUM(price) AS 합계 
+FROM sale2 GROUP BY empno, year ORDER BY year ASC, 합계 DESC;
 
 
 # 실습 4-13
+SELECT * FROM sale JOIN employee ON sale.empno = employee.empno; -- on + 공통조건 
+SELECT * FROM Employee JOIN Dept ON Employee.depno = Dept.depno;
+
+SELECT * FROM sale AS a -- AS 생략 가능
+				JOIN employee AS b
+                ON a.empno = b.empno;
+
+SELECT * FROM sale AS a 
+				JOIN employee AS b
+                USING (empno); -- 두 테이블의 컬럼명이 동일한 경우 using 사용, 위의 코드와 같은 코드
+
+SELECT a.no, a.empno, a.price, b.name,b.job, c.dname 
+	FROM sale AS a
+	JOIN employee AS b ON a.empno = b.empno
+	JOIN dept AS c on b.depno = c.depno
+    WHERE price > 100000
+    ORDER BY price DESC;
+-- 테이블 JOIN > where > order by 결과 중 select xxx 만 확인 
+
+
 # 실습 4-14
-# 실습 4-15
-# 실습 4-16
-# 실습 4-17
+SELECT * FROM sale AS a
+			LEFT JOIN employee AS b
+			ON a.empno = b.empno;
+SELECT * FROM sale AS a
+			RIGHT JOIN employee AS b
+            ON a.empno = b.empno;
+
+# 실습 4-15 모든 직원의 아이디, 이름, 직급, 부서명을 조회
+SELECT e.empno, e.name, e.job, d.dname 
+FROM employee As e 
+JOIN dept AS d 
+ON e.depno = d.depno;
+
+# 실습 4-16 '김유신' 직원의 2019년도 매출의 합을 조회
+SELECT SUM(price) AS 매출합
+FROM employee As e 
+JOIN sale AS s 
+ON e.empno = s.empno 
+WHERE e.name = '김유신' AND s.year = 2019;
+
+# 실습 4-17 2019년 50,000이상 매출에 대해 직원별 매출의 합이 100,000원 이상인 직원이름, 부서명, 직급, 년도, 매출 합 조회 (매출 합 큰 순서로 정렬)
+SELECT s.empno, e.name, d.dname, e.job, s.year, SUM(price) AS 매출합 
+FROM sale AS s
+JOIN employee AS e ON s.empno = e.empno
+JOIN dept AS d ON e.depno = d.depno
+WHERE year = 2019 AND price >= 50000 
+GROUP BY empno
+HAVING 매출합 >= 100000
+ORDER BY 매출합 DESC;
+
+
+
+
+
+
+
+
+
+
+
