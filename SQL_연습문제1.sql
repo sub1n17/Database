@@ -1,3 +1,10 @@
+CREATE DATABASE Shop;
+CREATE USER 'shop'@'%' IDENTIFIED BY '1234';
+GRANT ALL PRIVILEGES ON Shop.* TO 'shop'@'%';
+FLUSH PRIVILEGES; -- 현재 세션에 반영
+
+USE Shop;
+
 # 실습 1-1
 CREATE TABLE `Customer` (
 	custId VARCHAR(10) PRIMARY KEY,
@@ -72,10 +79,10 @@ SELECT DISTINCT company FROM product;
 SELECT prodName, price FROM product;
 
 # 실습 1-10 : 제품 테이블에서 제품명과 단가를 조회하되, 단가에 500원을 더해 ‘조정단가’로 출력하시오. 
-SELECT prodName, SUM(price + 500) FROM product;
+SELECT prodName, price + 500 AS 조정단가 FROM product;
 
 # 실습 1-11
-SELECT prodName, stock, price FROM product WHERE company='오리온';
+SELECT * FROM product WHERE company='오리온';
 
 # 실습 1-12
 SELECT orderProduct, orderCount, orderDate FROM `Order` WHERE orderId = 'c102';
@@ -84,7 +91,7 @@ SELECT orderProduct, orderCount, orderDate FROM `Order` WHERE orderId = 'c102';
 SELECT orderProduct, orderCount, orderDate FROM `Order` WHERE orderId = 'c102' AND orderCount >= 2;
 
 # 실습 1-14
-SELECT orderProduct, orderCount, orderDate FROM `Order` WHERE price >= 1000 AND price <= 2000;
+SELECT * FROM Product WHERE price >= 1000 AND price <= 2000;
 
 # 실습 1-15 LIKE : “문자 패턴 검색용 연산자”
 SELECT custid, name, hp, addr FROM customer WHERE name LIKE '김%';
@@ -102,22 +109,22 @@ SELECT * FROM customer WHERE addr IS NOT NULL;
 SELECT * FROM customer ORDER BY rdate DESC;
 
 # 실습 1-20
-SELECT * FROM `Order` WHERE orderCount >= 3 ORDER BY orderCount DESC, orderNo ASC;
+SELECT * FROM `Order` WHERE orderCount >= 3 ORDER BY orderCount DESC, orderProduct ASC;
 
  # 실습 1-21
 SELECT AVG(price) FROM product;
 
  # 실습 1-22
-SELECT SUM(stock) AS 재고량 합계 FROM product WHERE company = '농심';
+SELECT SUM(stock) AS `재고량 합계` FROM product WHERE company = '농심';
 
  # 실습 1-23
 SELECT COUNT(*) AS 고객수 FROM customer;
 
  # 실습 1-24
-SELECT COUNT(company) AS 제조업체 수 FROM product;
+SELECT COUNT(DISTINCT company) AS `제조업체 수` FROM product;
 
  # 실습 1-25
-SELECT orderProduct AS `주문 상품번호`, SUM(orderCount) AS 총 주문수량 FROM `Order` GROUP BY orderId; 
+SELECT orderProduct AS `주문 상품번호`, SUM(orderCount) AS `총 주문수량` FROM `Order` GROUP BY orderProduct; 
 
  # 실습 1-26
 SELECT company AS 제조업체, COUNT(*) AS 제품수, MAX(price) AS 최고가 FROM product GROUP BY company;
@@ -129,7 +136,7 @@ SELECT company AS 제조업체, COUNT(*) AS 제품수, MAX(price) AS 최고가 F
 SELECT orderProduct, orderId, SUM(orderCount) AS `총 주문수량` FROM `Order` GROUP BY orderProduct, orderId;
 
  # 실습 1-29
-SELECT a.orderId, b.prodName FROM `Order` AS a
+SELECT orderId, prodName FROM `Order` AS a
 JOIN product AS b
 ON a.orderProduct = b.prodNo
 WHERE orderid = 'c102';
@@ -140,5 +147,5 @@ JOIN Customer AS b
 ON a.orderId = b.custId
 JOIN Product AS c
 ON a.orderProduct = c.prodNo
-WHERE a.orderDate LIKE '%07-03%';
+WHERE a.orderDate LIKE '2022-07-03%';
  
