@@ -12,6 +12,9 @@ insert into `Users` values('user10','허난설헌','1992-09-07','F','010-7103-19
 select * from users;
 
 #Point
+ALTER TABLE `Points` DROP INDEX userId_UNIQUE;
+TRUNCATE TABLE points;
+
 insert into `Points` values( 1, 'user1', 1000 , '회원가입 1000 적립',now());
 insert into `Points` values( 2, 'user1', 6000, '상품구매 5% 적립',now());
 insert into `Points` values( 3, 'user3', 2835, '상품구매 5% 적립',now());
@@ -23,9 +26,8 @@ insert into `Points` values( 8, 'user2', 2615, '상품구매 5% 적립',now());
 insert into `Points` values( 9, 'user3', 1500, '이벤트 응모 1500 적립',now());
 insert into `Points` values(10, 'user6', 15840, '상품구매 2% 적립',now());
 
-ALTER TABLE `Points` DROP INDEX userId_UNIQUE;
 select * from points;
-TRUNCATE TABLE points;
+
 
 
 #Sellers
@@ -81,6 +83,10 @@ insert into`Orders` values('22010710110', 'user9', 94500, '광주시 충열로 1
 select * from `Orders`;
 
 #OrderItems
+ALTER TABLE OrderItems DROP INDEX orderNo_UNIQUE;
+ALTER TABLE OrderItems DROP INDEX prodNo_UNIQUE;
+TRUNCATE TABLE OrderItems;
+
 insert into `OrderItems` values( 1, '22010210001', 100110 , 38000, 15, 1);
 insert into `OrderItems` values( 2, '22010210001' ,100101 , 25000, 20, 1);
 insert into `OrderItems` values( 3, '22010210002' ,120103 , 21000, 10,3 );
@@ -95,9 +101,7 @@ insert into `OrderItems` values(11, '22010510021' ,100101 , 25000, 20,1 );
 insert into `OrderItems` values(12, '22010510031' ,170115 , 900000, 12,1 );
 insert into `OrderItems` values(13, '22010710110' ,120103 , 21000, 10,5 );
 select * from `OrderItems`;
-ALTER TABLE OrderItems DROP INDEX orderNo_UNIQUE;
-ALTER TABLE OrderItems DROP INDEX prodNo_UNIQUE;
-TRUNCATE TABLE OrderItems;
+
 
 
 #Carts
@@ -121,35 +125,67 @@ select * from products;
 select * from sellers;
 select * from users;
 
-# 문제1
+# 문제1. 모든 장바구니 내역에서 고객명, 상품명, 상품수량을 조회하시오. 단 상품수량 2건이상만 조회 할 것
+ select userName, prodName, cartProdCount
+ from carts c 
+ join users u on u.userId=c.userId
+ join products p on c.prodNo=p.prodNo
+ where cartProdCount >=2;
+
+# 문제2. 모든 상품내역에서 상품번호, 상품카테고리명, 상품명, 상품가격, 판매자이름, 판매자 연락처를 조회하시오. 
+select prodNo, cateName, prodName, prodPrice, sellerManager, sellerPhone
+from products p 
+join categories c on p.cateNo=c.cateNo
+join sellers s on p.sellerNo=s.sellerNo; 
+-- , 
+# 문제3. 모든 고객의 아이디, 이름, 휴대폰, 현재포인트, 적립포인트 총합을 조회하시오. 단 적립포인트 내역이 없으면 0으로 출력
+select u.userId, userName, userHp, userPoint, if(sum(point) is null, 0, sum(point)) AS totalPoint 
+from users u
+left join points p on u.userId=p.userId
+group by u.userId;
+
+# 문제4. 모든 주문의 주문번호, 주문자 아이디, 고객명, 주문가격, 주문일자를 조회하시오. 단 주문금액에 10만원 이상, 큰 금액순으로 조회, 금액이 같으면 이름이 사전순으로 될것
+select orderNo, o.userId, userName, orderTotalPrice, orderDate
+from orders o
+join users u on o.userId=u.userId
+where orderTotalPrice >= 100000
+order by orderTotalPrice desc, userName asc;
+
+# 문제5. 모든 주문의 주문번호, 주문자 아이디, 고객명, 상품명, 주문일자를 조회하시오. 주문번호는 중복 없이 상품명은 구분자 ,로 나열할것
+select distinct a.orderNo, a.userId, userName, group_concat(prodName), orderDate
+from orders a
+join users b on a.userid=b.userId
+join orderitems c on a.orderNo=c.orderNo
+join products d on c.prodNo=d.prodNo
+group by orderNo;
+
+# 문제6. 모든 상품의 상품번호, 상품명, 상품가격, 할인율, 할인된 가격을 조회하시오. 
+select prodNo, prodName, prodPrice, prodDiscount,FLOOR(prodPrice * (1 - prodDiscount / 100))
+from products;
+
+# 문제7. 고소영이 판매하는 모든 상품의 상품번호, 상품명, 상품가격, 재고수량, 판매자이름을 조회하시오. 
+select prodNo, prodName, prodPrice, prodStock, sellerManager
+from sellers a
+join products b on  a.sellerNo = b.sellerNo
+where sellerManager = '고소영';
+-- 
+# 문제8. 아직 상품을 판매하지 않은 판매자의 판매자번호, 판매자상호, 판매자 이름, 판매자 연락처를 조회하시오. 
+select a.sellerNo, a.sellerBizName, a.sellerManager, a.sellerPhone
+from sellers a
+join products b on a.sellerNo=b.sellerNo
+where prodno is null;
 
 
-# 문제2
+#  문제9. 모든 주문상세내역 중 개별 상품 가격과 개수 그리고 할인율이 적용된 가격을 구하고 그 가격으로 주문별 총합을 구해서 주문별 총합이 10만원이상 그리고 큰 금액 순으로 `주문번호`, `최종총합`을 조회하시오. 
+select  
+	ANY_VALUE(a.itemPrice), 
+	ANY_VALUE(a.itemCount), 
+    FLOOR(ANY_VALUE(a.itemPrice) * (1 - ANY_VALUE(prodDiscount) / 100)) AS `할인 가격`
+from orderitems a
+join products b on a.prodNo=b.prodNo
+group by a.prodNo;
 
-
-# 문제3
-
-
-# 문제4
-
-
-# 문제5
-
-
-# 문제6
-
-
-# 문제7
-
-
-# 문제8
-
-
-# 문제9
-
-
-# 문제10
-
+# 문제10. 장보고 고객이 주문했던 모든 상품명을 `고객명`, `상품명`으로 조회하시오. 단 상품명은 중복 안됨, 상품명은 구분자 , 로 나열
 
 
 
