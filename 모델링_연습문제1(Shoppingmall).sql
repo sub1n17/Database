@@ -178,14 +178,28 @@ where prodno is null;
 
 #  문제9. 모든 주문상세내역 중 개별 상품 가격과 개수 그리고 할인율이 적용된 가격을 구하고 그 가격으로 주문별 총합을 구해서 주문별 총합이 10만원이상 그리고 큰 금액 순으로 `주문번호`, `최종총합`을 조회하시오. 
 select  
-	ANY_VALUE(a.itemPrice), 
-	ANY_VALUE(a.itemCount), 
-    FLOOR(ANY_VALUE(a.itemPrice) * (1 - ANY_VALUE(prodDiscount) / 100)) AS `할인 가격`
-from orderitems a
-join products b on a.prodNo=b.prodNo
-group by a.prodNo;
+	orderNo AS `주문 번호`,
+    SUM(
+        FLOOR(
+            a.itemPrice * a.itemCount *
+            (1 - b.prodDiscount / 100)
+        )
+    ) AS `최종총합`
+FROM orderitems a
+JOIN products b  ON a.prodNo = b.prodNo
+GROUP BY a.orderNo
+having `최종총합` >= 100000 
+order by `최종총합` desc;
 
 # 문제10. 장보고 고객이 주문했던 모든 상품명을 `고객명`, `상품명`으로 조회하시오. 단 상품명은 중복 안됨, 상품명은 구분자 , 로 나열
+select 
+	userName as `고객명`,
+    group_concat(prodName separator ',') as `상품명` 
+from products p
+join orderitems oi on p.prodNo=oi.prodNo
+join orders od on oi.orderNo=od.orderNo
+join users u on od.userId=u.userId
+where userName='장보고';
 
 
 
